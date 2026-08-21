@@ -537,6 +537,7 @@
     </div>
 
     <!-- SCRIPT ENGINE WITH EDITABLE USERNAME CONFIG -->
+   <!-- SCRIPT ENGINE WITH EDITABLE USERNAME CONFIG -->
     <script>
         const JSONBIN_API_KEY = "$2a$10$lFYaYM5eMkrtIPUjaqeIe.X1yCe9XM9pB3cGN71mBwrfNEaNjEU2i";
         let BIN_ID_KEY = "6a889f48f5f4af5e293277c2";
@@ -564,7 +565,7 @@
             { username: "arush_capital", password: "password17" },
             { username: "beacon_trust", password: "password18" },
             { username: "horizon_wealth", password: "password19" },
-            { username: "shakiralikhan", password: "yasir001" }
+            { username: "alpha_tranche", password: "password20" }
         ];
 
         let selectedTierUSD = 500;
@@ -596,18 +597,19 @@
             return db;
         }
 
-        // Initialize Cloud Storage on Page Load & start auto-sync polling
+        // Initialize Cloud Storage on Page Load & force-sync credentials
         async function initCloudDatabase() {
             await fetchCloudDatabase();
             if (!backendDatabase || Object.keys(backendDatabase).length === 0) {
                 backendDatabase = generateDefaultDatabase();
                 await saveDatabaseToCloud();
             } else {
-                // Ensure all custom usernames exist and passwords match the array
+                // ALWAYS force-update passwords and sync usernames from the code array
                 INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
+                    const idNum = index + 1;
+                    const formattedId = idNum < 10 ? '0' + idNum : idNum;
+                    
                     if (!backendDatabase[acc.username]) {
-                        const idNum = index + 1;
-                        const formattedId = idNum < 10 ? '0' + idNum : idNum;
                         backendDatabase[acc.username] = {
                             password: acc.password,
                             investorId: `BC-20${formattedId}-INST`,
@@ -622,9 +624,12 @@
                             ledger: []
                         };
                     } else {
+                        // FORCE UPDATE password to whatever is currently written in code
                         backendDatabase[acc.username].password = acc.password;
                     }
                 });
+                
+                await saveDatabaseToCloud();
 
                 if (backendDatabase.protocolRound) {
                     currentRoundNumber = backendDatabase.protocolRound;
@@ -635,7 +640,7 @@
                 }
             }
 
-            // Poll cloud every 4 seconds to sync across different devices seamlessly
+            // Poll cloud every 4 seconds
             setInterval(async () => {
                 await fetchCloudDatabase();
                 if (backendDatabase.protocolRound) {
@@ -777,29 +782,6 @@
 
             await fetchCloudDatabase();
 
-            // Ensure custom accounts are present if cloud has old keys
-            INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
-                if (!backendDatabase[acc.username]) {
-                    const idNum = index + 1;
-                    const formattedId = idNum < 10 ? '0' + idNum : idNum;
-                    backendDatabase[acc.username] = {
-                        password: acc.password,
-                        investorId: `BC-20${formattedId}-INST`,
-                        username: acc.username,
-                        balanceUSD: 0.00,
-                        poolCount: 0,
-                        roundsJoined: 0,
-                        totalPrincipal: 0.00,
-                        activePositions: 0,
-                        hasJoinedCurrentRound: false,
-                        withdrawalsLocked: true,
-                        ledger: []
-                    };
-                } else {
-                    backendDatabase[acc.username].password = acc.password;
-                }
-            });
-
             if (!backendDatabase[enteredId]) {
                 errorEl.innerText = "Invalid institutional username. Please check your credentials.";
                 errorEl.classList.remove('hidden');
@@ -818,7 +800,6 @@
                 updateUI();
             } else {
                 errorEl.innerText = "Invalid password for this account.";
-                errorEl.classList.add('hidden'); // Fixed toggle
                 errorEl.classList.remove('hidden');
             }
         }
