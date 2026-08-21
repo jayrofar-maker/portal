@@ -47,8 +47,8 @@
 
             <div class="space-y-4 font-mono text-xs">
                 <div>
-                    <label class="block text-slate-400 mb-1.5 font-semibold">Institutional Username or ID (member01 - member20)</label>
-                    <input type="text" id="loginId" placeholder="e.g. member01" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-600 transition">
+                    <label class="block text-slate-400 mb-1.5 font-semibold">Institutional Username / Title</label>
+                    <input type="text" id="loginId" placeholder="e.g. apex_capital" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-white focus:outline-none focus:border-indigo-600 transition">
                 </div>
                 <div>
                     <label class="block text-slate-400 mb-1.5 font-semibold">Master Access Password</label>
@@ -536,10 +536,36 @@
         </div>
     </div>
 
-    <!-- SCRIPT ENGINE WITH JSONBIN CLOUD SYNC -->
+    <!-- SCRIPT ENGINE WITH EDITABLE USERNAME CONFIG -->
     <script>
         const JSONBIN_API_KEY = "$2a$10$lFYaYM5eMkrtIPUjaqeIe.X1yCe9XM9pB3cGN71mBwrfNEaNjEU2i";
         let BIN_ID_KEY = "6a889f48f5f4af5e293277c2";
+
+        // =========================================================================
+        // EDITABLE BACKEND USER LIST (All 20 Usernames & Passwords can be changed here)
+        // =========================================================================
+        const INSTITUTIONAL_ACCOUNTS = [
+            { username: "yasir_ali_khan", password: "shakir" },
+            { username: "blackrock_tranche", password: "password02" },
+            { username: "vanguard_sec", password: "password03" },
+            { username: "sequoia_vault", password: "password04" },
+            { username: "goldman_custody", password: "password05" },
+            { username: "morgan_tranche", password: "password06" },
+            { username: "bridgewater_fund", password: "password07" },
+            { username: "citadel_prime", password: "password08" },
+            { username: "virtu_global", password: "password09" },
+            { username: "jane_street_escrow", password: "password10" },
+            { username: "point72_capital", password: "password11" },
+            { username: "millennium_asset", password: "password12" },
+            { username: "renaissance_tech", password: "password13" },
+            { username: "two_sigma_fund", password: "password14" },
+            { username: "tiger_global", password: "password15" },
+            { username: "softbank_vision", password: "password16" },
+            { username: "arush_capital", password: "password17" },
+            { username: "beacon_trust", password: "password18" },
+            { username: "horizon_wealth", password: "password19" },
+            { username: "alpha_tranche", password: "password20" }
+        ];
 
         let selectedTierUSD = 500;
         let currentRoundNumber = 19;
@@ -549,12 +575,14 @@
         function generateDefaultDatabase() {
             const db = {};
             db.protocolRound = 19;
-            for (let i = 1; i <= 20; i++) {
-                const username = `member${i < 10 ? '0' + i : i}`;
-                db[username] = {
-                    password: `password${i < 10 ? '0' + i : i}`,
-                    investorId: `BC-20${i < 10 ? '0' + i : i}-INST`,
-                    username: username,
+            
+            INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
+                const idNum = index + 1;
+                const formattedId = idNum < 10 ? '0' + idNum : idNum;
+                db[acc.username] = {
+                    password: acc.password,
+                    investorId: `BC-20${formattedId}-INST`,
+                    username: acc.username,
                     balanceUSD: 0.00,
                     poolCount: 0,
                     roundsJoined: 0,
@@ -564,7 +592,7 @@
                     withdrawalsLocked: true,
                     ledger: []
                 };
-            }
+            });
             return db;
         }
 
@@ -575,6 +603,30 @@
                 backendDatabase = generateDefaultDatabase();
                 await saveDatabaseToCloud();
             } else {
+                // Ensure all custom usernames exist in fetched database if updated
+                INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
+                    if (!backendDatabase[acc.username]) {
+                        const idNum = index + 1;
+                        const formattedId = idNum < 10 ? '0' + idNum : idNum;
+                        backendDatabase[acc.username] = {
+                            password: acc.password,
+                            investorId: `BC-20${formattedId}-INST`,
+                            username: acc.username,
+                            balanceUSD: 0.00,
+                            poolCount: 0,
+                            roundsJoined: 0,
+                            totalPrincipal: 0.00,
+                            activePositions: 0,
+                            hasJoinedCurrentRound: false,
+                            withdrawalsLocked: true,
+                            ledger: []
+                        };
+                    } else {
+                        // Keep password updated from array if modified
+                        backendDatabase[acc.username].password = acc.password;
+                    }
+                });
+
                 if (backendDatabase.protocolRound) {
                     currentRoundNumber = backendDatabase.protocolRound;
                 }
@@ -732,7 +784,7 @@
             await fetchCloudDatabase();
 
             if (!backendDatabase[enteredId]) {
-                errorEl.innerText = "Invalid institutional member ID. Please use member01 through member20.";
+                errorEl.innerText = "Invalid institutional username. Please check your credentials.";
                 errorEl.classList.remove('hidden');
                 return;
             }
@@ -748,8 +800,8 @@
                 mainApp.classList.add('flex');
                 updateUI();
             } else {
-                errorEl.innerText = "Invalid password for this member account.";
-                errorEl.classList.add('hidden');
+                errorEl.innerText = "Invalid password for this account.";
+                errorEl.classList.remove('hidden');
             }
         }
 
