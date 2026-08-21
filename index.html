@@ -127,11 +127,6 @@
                     <span id="navInvestorId" class="font-bold text-slate-900">BC-1001-INST</span>
                 </div>
 
-                <!-- ADMIN SETTLEMENT BUTTON -->
-                <button onclick="settleCurrentRoundAndRewardWinners(10)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-md flex items-center space-x-1.5 font-mono">
-                    <span>⚡ Settle Round (10x)</span>
-                </button>
-
                 <button onclick="openModal('profileModal')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold transition shadow-xs flex items-center space-x-1.5">
                     <span>📋</span>
                     <span class="hidden sm:inline">Portfolio Ledger</span>
@@ -553,6 +548,7 @@
 
         function generateDefaultDatabase() {
             const db = {};
+            db.protocolRound = 19;
             for (let i = 1; i <= 20; i++) {
                 const username = `member${i < 10 ? '0' + i : i}`;
                 db[username] = {
@@ -578,14 +574,22 @@
             if (!backendDatabase || Object.keys(backendDatabase).length === 0) {
                 backendDatabase = generateDefaultDatabase();
                 await saveDatabaseToCloud();
-            } else if (loggedInUsername) {
-                syncLocalStateFromDatabase();
-                updateUI();
+            } else {
+                if (backendDatabase.protocolRound) {
+                    currentRoundNumber = backendDatabase.protocolRound;
+                }
+                if (loggedInUsername) {
+                    syncLocalStateFromDatabase();
+                    updateUI();
+                }
             }
 
             // Poll cloud every 4 seconds to sync across different devices seamlessly
             setInterval(async () => {
                 await fetchCloudDatabase();
+                if (backendDatabase.protocolRound) {
+                    currentRoundNumber = backendDatabase.protocolRound;
+                }
                 if (loggedInUsername) {
                     syncLocalStateFromDatabase();
                     updateUI();
@@ -603,9 +607,11 @@
                     }
                 });
                 const result = await response.json();
-                // JSONBin nests the data inside a .record property
                 if (result && result.record) {
                     backendDatabase = result.record;
+                    if (backendDatabase.protocolRound) {
+                        currentRoundNumber = backendDatabase.protocolRound;
+                    }
                 }
             } catch(e) {
                 console.error("Failed to sync from cloud", e);
@@ -616,6 +622,7 @@
             const binId = BIN_ID_KEY;
             if (!binId) return;
             try {
+                backendDatabase.protocolRound = currentRoundNumber;
                 await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
                     method: "PUT",
                     headers: {
@@ -660,11 +667,55 @@
             // Compute global shared pool count across all members for the round grid
             let totalSlotsFilled = 0;
             Object.keys(backendDatabase).forEach(user => {
+                if (user === 'protocolRound') return;
                 if (backendDatabase[user].hasJoinedCurrentRound) {
                     totalSlotsFilled++;
                 }
             });
             appState.poolCount = totalSlotsFilled;
+
+            if (totalSlotsFilled >= 30) {
+                executeBackendRoundSettlement(10);
+            }
+        }
+
+        // Automatic or manual backend payout & round increment function
+        async function executeBackendRoundSettlement(multiplier = 10) {
+            await fetchCloudDatabase();
+            let winnersCount = 0;
+
+            Object.keys(backendDatabase).forEach(username => {
+                if (username === 'protocolRound') return;
+                const user = backendDatabase[username];
+                
+                if (user && user.hasJoinedCurrentRound && user.totalPrincipal > 0) {
+                    const rewardAmount = user.totalPrincipal * multiplier;
+                    user.balanceUSD += rewardAmount;
+                    
+                    if (!user.ledger) user.ledger = [];
+                    user.ledger.unshift({
+                        type: 'Round Payout',
+                        desc: `Milestone Yield Settlement (Round #${currentRoundNumber}) [${multiplier}x Payout]`,
+                        amount: `+$${rewardAmount.toLocaleString()}.00`,
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' UTC'
+                    });
+
+                    user.hasJoinedCurrentRound = false;
+                    user.totalPrincipal = 0;
+                    user.activePositions = 0;
+                    winnersCount++;
+                }
+            });
+
+            currentRoundNumber += 1;
+            backendDatabase.protocolRound = currentRoundNumber;
+
+            await saveDatabaseToCloud();
+            if (loggedInUsername) {
+                syncLocalStateFromDatabase();
+                updateUI();
+            }
+            console.log(`Successfully settled Round #${currentRoundNumber - 1}! Rewarded ${winnersCount} participants. Advanced to Round #${currentRoundNumber}`);
         }
 
         async function handleLogin() {
@@ -698,7 +749,7 @@
                 updateUI();
             } else {
                 errorEl.innerText = "Invalid password for this member account.";
-                errorEl.classList.remove('hidden');
+                errorEl.classList.add('hidden');
             }
         }
 
@@ -725,45 +776,6 @@
                 
                 saveDatabaseToCloud();
             }
-        }
-
-        // ROUND SETTLEMENT FUNCTION
-        function settleCurrentRoundAndRewardWinners(multiplier = 10) {
-            if (!backendDatabase) return;
-
-            let winnersCount = 0;
-            Object.keys(backendDatabase).forEach(username => {
-                if (username === 'protocolRound') return;
-                const user = backendDatabase[username];
-                if (user && user.hasJoinedCurrentRound && user.totalPrincipal > 0) {
-                    const rewardAmount = user.totalPrincipal * multiplier;
-                    user.balanceUSD += rewardAmount;
-                    
-                    if (!user.ledger) user.ledger = [];
-                    user.ledger.unshift({
-                        type: 'Round Payout',
-                        desc: `Milestone Yield Settlement (Round #${currentRoundNumber}) [${multiplier}x Payout]`,
-                        amount: `+$${rewardAmount.toLocaleString()}.00`,
-                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' UTC'
-                    });
-
-                    user.hasJoinedCurrentRound = false;
-                    user.totalPrincipal = 0; 
-                    winnersCount++;
-                }
-            });
-
-            currentRoundNumber += 1;
-            backendDatabase.protocolRound = currentRoundNumber;
-
-            saveDatabaseToCloud();
-            
-            if (loggedInUsername) {
-                syncLocalStateFromDatabase();
-                updateUI();
-            }
-
-            openInfoModal(`Round #${currentRoundNumber - 1} settled! Rewarded ${winnersCount} members with ${multiplier}x payout. Advanced to Round #${currentRoundNumber}.`, "Round Settled");
         }
 
         function openInfoModal(message, title = "System Notification") {
