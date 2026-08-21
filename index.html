@@ -545,7 +545,7 @@
         // EDITABLE BACKEND USER LIST (All 20 Usernames & Passwords can be changed here)
         // =========================================================================
         const INSTITUTIONAL_ACCOUNTS = [
-            { username: "yasir_ali_khan", password: "shakir" },
+            { username: "apex_capital", password: "password01" },
             { username: "blackrock_tranche", password: "password02" },
             { username: "vanguard_sec", password: "password03" },
             { username: "sequoia_vault", password: "password04" },
@@ -603,7 +603,7 @@
                 backendDatabase = generateDefaultDatabase();
                 await saveDatabaseToCloud();
             } else {
-                // Ensure all custom usernames exist in fetched database if updated
+                // Ensure all custom usernames exist and passwords match the array
                 INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
                     if (!backendDatabase[acc.username]) {
                         const idNum = index + 1;
@@ -622,7 +622,6 @@
                             ledger: []
                         };
                     } else {
-                        // Keep password updated from array if modified
                         backendDatabase[acc.username].password = acc.password;
                     }
                 });
@@ -716,7 +715,6 @@
             appState.withdrawalsLocked = userData.withdrawalsLocked !== undefined ? userData.withdrawalsLocked : true;
             appState.ledger = userData.ledger || [];
 
-            // Compute global shared pool count across all members for the round grid
             let totalSlotsFilled = 0;
             Object.keys(backendDatabase).forEach(user => {
                 if (user === 'protocolRound') return;
@@ -726,16 +724,13 @@
             });
             appState.poolCount = totalSlotsFilled;
 
-            // Automatically trigger backend settlement ONLY when exactly 30 slots are completed
             if (totalSlotsFilled >= 30) {
                 executeBackendRoundSettlement(10);
             }
         }
 
-        // Automatic backend payout & round increment function
         async function executeBackendRoundSettlement(multiplier = 10) {
             await fetchCloudDatabase();
-            let winnersCount = 0;
 
             Object.keys(backendDatabase).forEach(username => {
                 if (username === 'protocolRound') return;
@@ -756,7 +751,6 @@
                     user.hasJoinedCurrentRound = false;
                     user.totalPrincipal = 0;
                     user.activePositions = 0;
-                    winnersCount++;
                 }
             });
 
@@ -783,6 +777,29 @@
 
             await fetchCloudDatabase();
 
+            // Ensure custom accounts are present if cloud has old keys
+            INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
+                if (!backendDatabase[acc.username]) {
+                    const idNum = index + 1;
+                    const formattedId = idNum < 10 ? '0' + idNum : idNum;
+                    backendDatabase[acc.username] = {
+                        password: acc.password,
+                        investorId: `BC-20${formattedId}-INST`,
+                        username: acc.username,
+                        balanceUSD: 0.00,
+                        poolCount: 0,
+                        roundsJoined: 0,
+                        totalPrincipal: 0.00,
+                        activePositions: 0,
+                        hasJoinedCurrentRound: false,
+                        withdrawalsLocked: true,
+                        ledger: []
+                    };
+                } else {
+                    backendDatabase[acc.username].password = acc.password;
+                }
+            });
+
             if (!backendDatabase[enteredId]) {
                 errorEl.innerText = "Invalid institutional username. Please check your credentials.";
                 errorEl.classList.remove('hidden');
@@ -801,6 +818,7 @@
                 updateUI();
             } else {
                 errorEl.innerText = "Invalid password for this account.";
+                errorEl.classList.add('hidden'); // Fixed toggle
                 errorEl.classList.remove('hidden');
             }
         }
