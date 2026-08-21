@@ -540,7 +540,7 @@
     <script>
         const JSONBIN_API_KEY = "$2a$10$lFYaYM5eMkrtIPUjaqeIe.X1yCe9XM9pB3cGN71mBwrfNEaNjEU2i";
         // We will store all data in a single JSONBin bin. On first load, it auto-creates or fetches.
-        let BIN_ID_KEY = "bagchasers_jsonbin_id_v2";
+        let BIN_ID_KEY = "6a889f48f5f4af5e293277c2";
 
         let selectedTierUSD = 500;
         let currentRoundNumber = 19;
@@ -570,33 +570,13 @@
 
         // Initialize Cloud Storage on Page Load
         async function initCloudDatabase() {
-            let binId = localStorage.getItem(BIN_ID_KEY);
-            if (!binId) {
-                // Create a fresh bin on JSONBin with default members
-                try {
-                    const initialData = generateDefaultDatabase();
-                    const response = await fetch("https://api.jsonbin.io/v3/b", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-Master-Key": JSONBIN_API_KEY,
-                            "X-Bin-Name": "BagChasersCloudDB"
-                        },
-                        body: JSON.stringify(initialData)
-                    });
-                    const result = await response.json();
-                    if (result && result.metadata && result.metadata.id) {
-                        binId = result.metadata.id;
-                        localStorage.setItem(BIN_ID_KEY, binId);
-                        backendDatabase = initialData;
-                    } else {
-                        backendDatabase = initialData;
-                    }
-                } catch(e) {
-                    backendDatabase = generateDefaultDatabase();
-                }
-            } else {
-                await fetchCloudDatabase();
+            // Directly fetch your main shared bin
+            await fetchCloudDatabase();
+            
+            // If the bin is empty or new, populate with default members
+            if (!backendDatabase || Object.keys(backendDatabase).length === 0) {
+                backendDatabase = generateDefaultDatabase();
+                await saveDatabaseToCloud();
             }
         }
 
