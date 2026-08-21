@@ -246,15 +246,15 @@
                         <div>
                             <div class="flex justify-between items-center text-xs font-mono mb-2">
                                 <span class="text-slate-500">Investor Slot Allocation</span>
-                                <span id="poolCount" class="font-bold text-indigo-600">0 / 20 Slots</span>
+                                <span id="poolCount" class="font-bold text-indigo-600">20 / 30 Slots</span>
                             </div>
                             <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                                <div id="poolBar" class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                                <div id="poolBar" class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: 66.66%"></div>
                             </div>
                         </div>
 
                         <div>
-                            <span class="text-[11px] font-mono font-semibold text-slate-400 uppercase tracking-wider block mb-2">Tranche Participant Matrix (20 Slots)</span>
+                            <span class="text-[11px] font-mono font-semibold text-slate-400 uppercase tracking-wider block mb-2">Tranche Participant Matrix (30 Slots)</span>
                             <div id="nodeGrid" class="grid grid-cols-5 sm:grid-cols-10 gap-1.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200/60">
                                 <!-- Generated dynamically via JS -->
                             </div>
@@ -263,7 +263,7 @@
                         <div class="space-y-2.5 text-xs font-mono text-slate-600">
                             <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
                                 <span>Remaining Slots:</span>
-                                <span id="remainingSlots" class="text-slate-900 font-bold">20 Slots</span>
+                                <span id="remainingSlots" class="text-slate-900 font-bold">10 Slots</span>
                             </div>
                             <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
                                 <span>Round Status for You:</span>
@@ -584,7 +584,7 @@
                     investorId: `BC-20${formattedId}-INST`,
                     username: acc.username,
                     balanceUSD: 0.00,
-                    poolCount: 0,
+                    poolCount: 20, // Default base start of 20 reserved slots
                     roundsJoined: 0,
                     totalPrincipal: 0.00,
                     activePositions: 0,
@@ -619,7 +619,7 @@
                             investorId: `BC-20${formattedId}-INST`,
                             username: acc.username,
                             balanceUSD: 0.00,
-                            poolCount: 0,
+                            poolCount: 20,
                             roundsJoined: 0,
                             totalPrincipal: 0.00,
                             activePositions: 0,
@@ -705,7 +705,7 @@
             username: "",
             investorId: "",
             balanceUSD: 0, 
-            poolCount: 0,        
+            poolCount: 20,        
             roundsJoined: 0,
             totalPrincipal: 0,
             activePositions: 0,
@@ -721,7 +721,6 @@
             appState.username = userData.username;
             appState.investorId = userData.investorId;
             appState.balanceUSD = userData.balanceUSD;
-            appState.poolCount = userData.poolCount || 0;
             appState.roundsJoined = userData.roundsJoined || 0;
             appState.totalPrincipal = userData.totalPrincipal || 0;
             appState.activePositions = userData.activePositions || 0;
@@ -729,16 +728,17 @@
             appState.withdrawalsLocked = userData.withdrawalsLocked !== undefined ? userData.withdrawalsLocked : true;
             appState.ledger = userData.ledger || [];
 
-            let totalSlotsFilled = 0;
+            // Calculate total slots filled starting from a base baseline of 20 reserved slots
+            let userJoins = 0;
             Object.keys(backendDatabase).forEach(user => {
                 if (user === 'protocolRound') return;
                 if (backendDatabase[user].hasJoinedCurrentRound) {
-                    totalSlotsFilled++;
+                    userJoins++;
                 }
             });
-            appState.poolCount = totalSlotsFilled;
+            appState.poolCount = 20 + userJoins;
 
-            if (totalSlotsFilled >= 20) {
+            if (appState.poolCount >= 30) {
                 executeBackendRoundSettlement(10);
             }
         }
@@ -770,6 +770,12 @@
 
             currentRoundNumber += 1;
             backendDatabase.protocolRound = currentRoundNumber;
+
+            // Reset pool counts base for new round
+            Object.keys(backendDatabase).forEach(username => {
+                if (username === 'protocolRound') return;
+                backendDatabase[username].poolCount = 20;
+            });
 
             await saveDatabaseToCloud();
             if (loggedInUsername) {
@@ -809,7 +815,7 @@
                 updateUI();
             } else {
                 errorEl.innerText = "Invalid password for this account.";
-                errorEl.classList.add('hidden'); // Fixed bug to show error correctly
+                errorEl.classList.add('hidden');
                 errorEl.classList.remove('hidden');
             }
         }
@@ -931,7 +937,7 @@
 
         function renderNodeGrid() {
             let gridHTML = '';
-            for (let i = 1; i <= 20; i++) {
+            for (let i = 1; i <= 30; i++) {
                 const isFilled = i <= appState.poolCount;
                 gridHTML += `<div class="h-6 rounded flex items-center justify-center text-[10px] font-bold ${isFilled ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}" title="Slot #${i}">${i}</div>`;
             }
@@ -952,10 +958,10 @@
             document.getElementById('statProjectedYield').innerText = `$${projectedYield.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} USD`;
             document.getElementById('statActivePositions').innerText = `${appState.activePositions} Positions`;
 
-            document.getElementById('poolCount').innerText = `${appState.poolCount} / 20 Slots`;
-            const remaining = Math.max(0, 20 - appState.poolCount);
+            document.getElementById('poolCount').innerText = `${appState.poolCount} / 30 Slots`;
+            const remaining = Math.max(0, 30 - appState.poolCount);
             document.getElementById('remainingSlots').innerText = `${remaining} Slots`;
-            const percentage = (appState.poolCount / 20) * 100;
+            const percentage = (appState.poolCount / 30) * 100;
             document.getElementById('poolBar').style.width = `${Math.min(100, percentage)}%`;
             renderNodeGrid();
 
