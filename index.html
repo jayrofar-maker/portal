@@ -103,9 +103,6 @@
         <!-- MAIN APP HEADER -->
         <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 px-4 sm:px-8 py-3.5 flex flex-col md:flex-row justify-between items-center shadow-xs gap-3 md:gap-0">
             <div class="flex items-center justify-between w-full md:w-auto">
-                <button onclick="settleCurrentRoundAndRewardWinners(10)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold">
-    Trigger Round Settlement (10x Payout)
-</button>
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-900 to-indigo-600 flex items-center justify-center font-black text-white text-lg shadow-md shadow-indigo-500/25 shrink-0">
                         B
@@ -129,6 +126,11 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                     <span id="navInvestorId" class="font-bold text-slate-900">BC-1001-INST</span>
                 </div>
+
+                <!-- ADMIN SETTLEMENT BUTTON -->
+                <button onclick="settleCurrentRoundAndRewardWinners(10)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-md flex items-center space-x-1.5 font-mono">
+                    <span>⚡ Settle Round (10x)</span>
+                </button>
 
                 <button onclick="openModal('profileModal')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold transition shadow-xs flex items-center space-x-1.5">
                     <span>📋</span>
@@ -725,6 +727,45 @@
             }
         }
 
+        // ROUND SETTLEMENT FUNCTION
+        function settleCurrentRoundAndRewardWinners(multiplier = 10) {
+            if (!backendDatabase) return;
+
+            let winnersCount = 0;
+            Object.keys(backendDatabase).forEach(username => {
+                if (username === 'protocolRound') return;
+                const user = backendDatabase[username];
+                if (user && user.hasJoinedCurrentRound && user.totalPrincipal > 0) {
+                    const rewardAmount = user.totalPrincipal * multiplier;
+                    user.balanceUSD += rewardAmount;
+                    
+                    if (!user.ledger) user.ledger = [];
+                    user.ledger.unshift({
+                        type: 'Round Payout',
+                        desc: `Milestone Yield Settlement (Round #${currentRoundNumber}) [${multiplier}x Payout]`,
+                        amount: `+$${rewardAmount.toLocaleString()}.00`,
+                        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' UTC'
+                    });
+
+                    user.hasJoinedCurrentRound = false;
+                    user.totalPrincipal = 0; 
+                    winnersCount++;
+                }
+            });
+
+            currentRoundNumber += 1;
+            backendDatabase.protocolRound = currentRoundNumber;
+
+            saveDatabaseToCloud();
+            
+            if (loggedInUsername) {
+                syncLocalStateFromDatabase();
+                updateUI();
+            }
+
+            openInfoModal(`Round #${currentRoundNumber - 1} settled! Rewarded ${winnersCount} members with ${multiplier}x payout. Advanced to Round #${currentRoundNumber}.`, "Round Settled");
+        }
+
         function openInfoModal(message, title = "System Notification") {
             document.getElementById('infoModalTitle').innerText = title;
             document.getElementById('infoModalText').innerText = message;
@@ -975,61 +1016,6 @@
         // Run initial cloud database boot up
         initCloudDatabase();
         selectTier(500);
-
-        function settleCurrentRoundAndRewardWinners(multiplier = 10) {
-    // 1. Make sure your database object exists
-    if (!backendDatabase) return;
-
-    let winnersCount = 0;
-
-    // 2. Loop through every user in the database
-    Object.keys(backendDatabase).forEach(username => {
-        // Skip metadata keys like 'protocolRound'
-        if (username === 'protocolRound') return; 
-
-        const user = backendDatabase[username];
-
-        // 3. Check if the user joined the current round and has active principal
-        if (user && user.hasJoinedCurrentRound && user.totalPrincipal > 0) {
-            // Calculate the 10x reward (or whatever multiplier you pass in)
-            const rewardAmount = user.totalPrincipal * multiplier;
-            
-            // Add winnings to their spendable balance
-            user.balanceUSD += rewardAmount;
-            
-            // Add a record to their personal ledger history
-            if (!user.ledger) user.ledger = [];
-            user.ledger.unshift({
-                type: 'Round Payout',
-                desc: `Milestone Yield Settlement (Round #${currentRoundNumber}) [${multiplier}x Payout]`,
-                amount: `+$${rewardAmount.toLocaleString()}.00`,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' UTC'
-            });
-
-            // 4. Reset their round status so they are ready for the next round
-            user.hasJoinedCurrentRound = false;
-            user.totalPrincipal = 0; 
-            winnersCount++;
-        }
-    });
-
-    // 5. Increment the round number
-    currentRoundNumber += 1;
-    backendDatabase.protocolRound = currentRoundNumber;
-
-    // 6. Save your changes back to your storage (like Cloud / JSONBin / localStorage)
-    saveDatabaseToCloud(); 
-
-    // 7. Refresh the UI for whoever is currently logged in
-    if (loggedInUsername) {
-        syncLocalStateFromDatabase();
-        updateUI();
-    }
-
-    console.log(`Successfully settled Round! Rewarded ${winnersCount} winners.`);
-}
-
-        
     </script>
 </body>
 </html>
