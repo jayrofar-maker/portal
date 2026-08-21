@@ -584,7 +584,6 @@
                     investorId: `BC-20${formattedId}-INST`,
                     username: acc.username,
                     balanceUSD: 0.00,
-                    poolCount: 20, // Default base start of 20 reserved slots
                     roundsJoined: 0,
                     totalPrincipal: 0.00,
                     activePositions: 0,
@@ -596,7 +595,6 @@
             return db;
         }
 
-        // Initialize Cloud Storage on Page Load & prioritize code passwords + round 20 base
         async function initCloudDatabase() {
             await fetchCloudDatabase();
             
@@ -608,7 +606,6 @@
                     backendDatabase.protocolRound = 20;
                 }
 
-                // OVERRIDE: Update passwords and usernames directly from the code array every single time
                 INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
                     const idNum = index + 1;
                     const formattedId = idNum < 10 ? '0' + idNum : idNum;
@@ -619,7 +616,6 @@
                             investorId: `BC-20${formattedId}-INST`,
                             username: acc.username,
                             balanceUSD: 0.00,
-                            poolCount: 20,
                             roundsJoined: 0,
                             totalPrincipal: 0.00,
                             activePositions: 0,
@@ -642,7 +638,6 @@
                 }
             }
 
-            // Poll cloud every 4 seconds
             setInterval(async () => {
                 await fetchCloudDatabase();
                 
@@ -728,7 +723,7 @@
             appState.withdrawalsLocked = userData.withdrawalsLocked !== undefined ? userData.withdrawalsLocked : true;
             appState.ledger = userData.ledger || [];
 
-            // Calculate total slots filled starting from a base baseline of 20 reserved slots
+            // BASELINE: Start pool at 20 pre-filled slots, adding users who join on top of it up to 30 max capacity
             let userJoins = 0;
             Object.keys(backendDatabase).forEach(user => {
                 if (user === 'protocolRound') return;
@@ -770,12 +765,6 @@
 
             currentRoundNumber += 1;
             backendDatabase.protocolRound = currentRoundNumber;
-
-            // Reset pool counts base for new round
-            Object.keys(backendDatabase).forEach(username => {
-                if (username === 'protocolRound') return;
-                backendDatabase[username].poolCount = 20;
-            });
 
             await saveDatabaseToCloud();
             if (loggedInUsername) {
@@ -833,7 +822,6 @@
             if (!loggedInUsername) return;
             if (backendDatabase[loggedInUsername]) {
                 backendDatabase[loggedInUsername].balanceUSD = appState.balanceUSD;
-                backendDatabase[loggedInUsername].poolCount = appState.poolCount;
                 backendDatabase[loggedInUsername].roundsJoined = appState.roundsJoined;
                 backendDatabase[loggedInUsername].totalPrincipal = appState.totalPrincipal;
                 backendDatabase[loggedInUsername].activePositions = appState.activePositions;
