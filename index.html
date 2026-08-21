@@ -536,11 +536,11 @@
         </div>
     </div>
 
-    <!-- SCRIPT ENGINE WITH CORS-FRIENDLY PUBLIC CLOUD STORAGE -->
+    <!-- SCRIPT ENGINE WITH JSONBIN CLOUD SYNC -->
     <script>
-        // Public Cloud Bin Endpoint via JSONsty (CORS enabled)
-        const STORAGE_API_URL = "https://json.psty.io/api/v1/store/bagchasers_master_db_v2";
-        const STORAGE_KEY_TOKEN = "pub_live_bagchasers_sync";
+        const JSONBIN_API_KEY = "$2a$10$lFYaYM5eMkrtIPUjaqeIe.X1yCe9XM9pB3cGN71mBwrfNEaNjEU2i";
+        // Hardcoded to your exact primary active database bin
+        let BIN_ID_KEY = "6a889f48f5f4af5e293277c2";
 
         let selectedTierUSD = 500;
         let currentRoundNumber = 19;
@@ -578,17 +578,17 @@
         }
 
         async function fetchCloudDatabase() {
+            const binId = BIN_ID_KEY;
+            if (!binId) return;
             try {
-                const response = await fetch(STORAGE_API_URL, {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
                     headers: {
-                        "Accept": "application/json"
+                        "X-Master-Key": JSONBIN_API_KEY
                     }
                 });
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result && Object.keys(result).length > 0) {
-                        backendDatabase = result;
-                    }
+                const result = await response.json();
+                if (result && result.record) {
+                    backendDatabase = result.record;
                 }
             } catch(e) {
                 console.error("Failed to sync from cloud", e);
@@ -596,11 +596,14 @@
         }
 
         async function saveDatabaseToCloud() {
+            const binId = BIN_ID_KEY;
+            if (!binId) return;
             try {
-                await fetch(STORAGE_API_URL, {
+                await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
                     method: "PUT",
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
+                        "X-Master-Key": JSONBIN_API_KEY
                     },
                     body: JSON.stringify(backendDatabase)
                 });
