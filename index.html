@@ -598,13 +598,15 @@
         }
 
         // Initialize Cloud Storage on Page Load & force-sync credentials
+        // Initialize Cloud Storage on Page Load & prioritize code passwords
         async function initCloudDatabase() {
             await fetchCloudDatabase();
+            
             if (!backendDatabase || Object.keys(backendDatabase).length === 0) {
                 backendDatabase = generateDefaultDatabase();
                 await saveDatabaseToCloud();
             } else {
-                // ALWAYS force-update passwords and sync usernames from the code array
+                // OVERRIDE: Update passwords and usernames directly from the code array every single time
                 INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
                     const idNum = index + 1;
                     const formattedId = idNum < 10 ? '0' + idNum : idNum;
@@ -624,12 +626,11 @@
                             ledger: []
                         };
                     } else {
-                        // FORCE UPDATE password to whatever is currently written in code
+                        // FORCE OVERWRITE: This ensures the code password ALWAYS wins over the cloud
                         backendDatabase[acc.username].password = acc.password;
+                        backendDatabase[acc.username].username = acc.username;
                     }
                 });
-                
-                await saveDatabaseToCloud();
 
                 if (backendDatabase.protocolRound) {
                     currentRoundNumber = backendDatabase.protocolRound;
@@ -640,9 +641,17 @@
                 }
             }
 
-            // Poll cloud every 4 seconds
+            // Poll cloud every 4 seconds (keeping balances/states synced, but preserving code passwords)
             setInterval(async () => {
                 await fetchCloudDatabase();
+                
+                // Re-apply code passwords on every poll just to be safe
+                INSTITUTIONAL_ACCOUNTS.forEach(acc => {
+                    if (backendDatabase[acc.username]) {
+                        backendDatabase[acc.username].password = acc.password;
+                    }
+                });
+
                 if (backendDatabase.protocolRound) {
                     currentRoundNumber = backendDatabase.protocolRound;
                 }
