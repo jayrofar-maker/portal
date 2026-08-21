@@ -674,12 +674,13 @@
             });
             appState.poolCount = totalSlotsFilled;
 
+            // Automatically trigger backend settlement ONLY when exactly 30 slots are completed
             if (totalSlotsFilled >= 30) {
                 executeBackendRoundSettlement(10);
             }
         }
 
-        // Automatic or manual backend payout & round increment function
+        // Automatic backend payout & round increment function
         async function executeBackendRoundSettlement(multiplier = 10) {
             await fetchCloudDatabase();
             let winnersCount = 0;
@@ -715,7 +716,6 @@
                 syncLocalStateFromDatabase();
                 updateUI();
             }
-            console.log(`Successfully settled Round #${currentRoundNumber - 1}! Rewarded ${winnersCount} participants. Advanced to Round #${currentRoundNumber}`);
         }
 
         async function handleLogin() {
