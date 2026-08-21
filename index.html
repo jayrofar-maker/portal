@@ -598,6 +598,7 @@
                     }
                 });
                 const result = await response.json();
+                // JSONBin nests the data inside a .record property
                 if (result && result.record) {
                     backendDatabase = result.record;
                 }
