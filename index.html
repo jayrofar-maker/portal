@@ -81,7 +81,7 @@
                     <span class="text-emerald-300 font-semibold">HSM COLD VAULT SECURE</span>
                 </span>
                 <span class="hidden md:inline text-slate-600">|</span>
-                <span id="statusBarRound" class="hidden md:inline text-slate-300">INVESTMENT ROUND: #19</span>
+                <span id="statusBarRound" class="hidden md:inline text-slate-300">INVESTMENT ROUND: #20</span>
             </div>
             <div class="flex items-center space-x-3 text-slate-300">
                 <span class="text-emerald-400 font-bold text-[10px]">🛡️ SOC-2 Audited</span>
@@ -93,10 +93,10 @@
         <!-- LIVE GLOBAL AUDIT TICKER -->
         <div class="bg-indigo-900/10 border-b border-indigo-100 text-indigo-900 text-xs py-2 overflow-hidden font-mono">
             <div class="animate-marquee whitespace-nowrap flex space-x-12 items-center">
-                <span class="flex items-center space-x-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>[AUDIT HASH #891A]: Tranche #18 Successfully Settled</span></span>
+                <span class="flex items-center space-x-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>[AUDIT HASH #891A]: Tranche #19 Successfully Settled</span></span>
                 <span class="flex items-center space-x-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>[KPMG ATTESTATION]: Q2 Custodial Reserves Verified 1:1</span></span>
                 <span class="flex items-center space-x-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>[ESCROW SYNC]: Multi-Sig Quorum 5/5 Active on Ledger</span></span>
-                <span class="flex items-center space-x-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>[AUDIT HASH #891A]: Tranche #18 Successfully Settled</span></span>
+                <span class="flex items-center space-x-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>[AUDIT HASH #891A]: Tranche #19 Successfully Settled</span></span>
             </div>
         </div>
 
@@ -239,7 +239,7 @@
                     <!-- TRANCHE ROUND CAPACITY CARD -->
                     <div class="neo-card p-5 sm:p-6 rounded-2xl space-y-5">
                         <div class="flex justify-between items-center">
-                            <h3 id="currentRoundTitle" class="text-sm font-bold text-slate-800 uppercase tracking-wide">Round #19 Tranche</h3>
+                            <h3 id="currentRoundTitle" class="text-sm font-bold text-slate-800 uppercase tracking-wide">Round #20 Tranche</h3>
                             <span id="roundStatusBadge" class="text-xs font-mono text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">Filling</span>
                         </div>
 
@@ -537,7 +537,6 @@
     </div>
 
     <!-- SCRIPT ENGINE WITH EDITABLE USERNAME CONFIG -->
-   <!-- SCRIPT ENGINE WITH EDITABLE USERNAME CONFIG -->
     <script>
         const JSONBIN_API_KEY = "$2a$10$lFYaYM5eMkrtIPUjaqeIe.X1yCe9XM9pB3cGN71mBwrfNEaNjEU2i";
         let BIN_ID_KEY = "6a889f48f5f4af5e293277c2";
@@ -569,13 +568,13 @@
         ];
 
         let selectedTierUSD = 500;
-        let currentRoundNumber = 19;
+        let currentRoundNumber = 20; // Default start count set to 20
         let loggedInUsername = null;
         let backendDatabase = {};
 
         function generateDefaultDatabase() {
             const db = {};
-            db.protocolRound = 19;
+            db.protocolRound = 20; // Default cloud round set to 20
             
             INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
                 const idNum = index + 1;
@@ -597,8 +596,7 @@
             return db;
         }
 
-        // Initialize Cloud Storage on Page Load & force-sync credentials
-        // Initialize Cloud Storage on Page Load & prioritize code passwords
+        // Initialize Cloud Storage on Page Load & prioritize code passwords + round 20 base
         async function initCloudDatabase() {
             await fetchCloudDatabase();
             
@@ -606,6 +604,10 @@
                 backendDatabase = generateDefaultDatabase();
                 await saveDatabaseToCloud();
             } else {
+                if (!backendDatabase.protocolRound || backendDatabase.protocolRound < 20) {
+                    backendDatabase.protocolRound = 20;
+                }
+
                 // OVERRIDE: Update passwords and usernames directly from the code array every single time
                 INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
                     const idNum = index + 1;
