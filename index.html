@@ -404,8 +404,8 @@
     <div id="withdrawModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white border border-slate-200 w-full max-w-lg rounded-3xl p-6 sm:p-8 relative shadow-2xl">
             <button onclick="closeModal('withdrawModal')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-900 text-lg">&times;</button>
-            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1">Yield Payout Withdrawal</h3>
-            <p class="text-xs text-slate-500 font-mono mb-6">Transfer settled milestone yields to your designated destination account</p>
+            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1">Withdraw</h3>
+            <p class="text-xs text-slate-500 font-mono mb-6">Transfer your winnings to your btc address on chain network</p>
 
             <div class="space-y-4 font-mono text-xs mb-6">
                 <div>
@@ -413,13 +413,13 @@
                     <input type="number" id="withdrawInputUSD" placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 sm:p-4 text-sm font-mono text-slate-900 focus:outline-none focus:border-indigo-600 transition">
                 </div>
                 <div>
-                    <label class="block text-slate-500 mb-1.5 font-semibold">Destination Account / IBAN / Wallet Address</label>
-                    <input type="text" id="withdrawAddress" placeholder="Enter destination address..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 sm:p-4 text-sm font-mono text-slate-900 focus:outline-none focus:border-indigo-600 transition">
+                    <label class="block text-slate-500 mb-1.5 font-semibold">Wallet Address</label>
+                    <input type="text" id="withdrawAddress" placeholder="Enter your wallet address..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 sm:p-4 text-sm font-mono text-slate-900 focus:outline-none focus:border-indigo-600 transition">
                 </div>
             </div>
 
             <button onclick="confirmWithdrawal()" class="w-full py-3.5 sm:py-4 bg-slate-900 hover:bg-slate-800 text-white font-extrabold rounded-2xl transition text-xs sm:text-sm tracking-wide shadow-md font-mono">
-                REQUEST WITHDRAWAL TRANSFER
+                REQUEST WITHDRAWAL
             </button>
         </div>
     </div>
@@ -958,7 +958,7 @@
 
             document.getElementById('currentRoundTitle').innerText = `Round #${currentRoundNumber} Tranche`;
             document.getElementById('statusBarRound').innerText = `INVESTMENT ROUND: #${currentRoundNumber}`;
-            document.getElementById('modalRoundSubtext').innerText = `Select fixed investment tier for Round #${currentRoundNumber}`;
+            document.getElementById('modalRoundSubtext').innerText = `Select your deposit amount for Round #${currentRoundNumber}`;
 
             const roundStatusText = appState.hasJoinedCurrentRound ? "Joined (Active)" : "Not Joined Yet";
             document.getElementById('userRoundStatusText').innerText = roundStatusText;
