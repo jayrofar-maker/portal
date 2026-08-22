@@ -129,7 +129,7 @@
 
                 <button onclick="openModal('profileModal')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold transition shadow-xs flex items-center space-x-1.5">
                     <span>📋</span>
-                    <span class="hidden sm:inline">Portfolio Ledger</span>
+                    <span class="hidden sm:inline">Profile</span>
                     <span class="sm:hidden">Ledger</span>
                 </button>
                 <button onclick="openModal('allocateModal')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/25 flex items-center space-x-1.5">
@@ -428,16 +428,16 @@
     <div id="profileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white border border-slate-200 w-full max-w-xl rounded-3xl p-6 sm:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('profileModal')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-900 text-lg">&times;</button>
-            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1">Investor Profile & Portfolio Ledger</h3>
+            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1">Profile & Portfolio</h3>
             <p class="text-xs text-slate-500 font-mono mb-6">Verified institutional identity and historical tranche records</p>
 
             <div class="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 mb-6 font-mono text-xs space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="text-slate-500">Partner Entity:</span>
+                    <span class="text-slate-500">Username:</span>
                     <span id="profileUsername" class="font-bold text-slate-900 text-xs sm:text-sm truncate max-w-[200px]">New Client</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-slate-500">Institutional ID:</span>
+                    <span class="text-slate-500">Portal ID:</span>
                     <span id="profileInvestorId" class="font-mono text-indigo-600">BC-1001-INST</span>
                 </div>
                 <div class="flex justify-between items-center">
@@ -448,7 +448,7 @@
 
             <h4 class="text-xs font-mono font-semibold text-slate-400 uppercase tracking-wider mb-3">Complete Portfolio History</h4>
             <div id="profileLedger" class="space-y-2 max-h-48 overflow-y-auto pr-1 font-mono text-xs">
-                <p class="text-slate-400 italic">No ledger entries recorded.</p>
+                <p class="text-slate-400 italic">No entries recorded.</p>
             </div>
         </div>
     </div>
