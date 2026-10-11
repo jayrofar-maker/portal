@@ -329,16 +329,16 @@
                 <p id="modalRoundSubtext" class="text-xs text-slate-500 font-mono mb-5">Select your fee amount</p>
 
                 <div class="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6">
+                    <button onclick="selectTier(250)" id="tier-250" class="tier-btn relative p-3 sm:p-4 rounded-2xl border-2 transition group text-center bg-slate-50 border-slate-200 hover:border-indigo-400">
+                        <span class="text-sm sm:text-base font-extrabold text-slate-800 block">$250</span>
+                        <span class="text-[9px] sm:text-[10px] text-slate-400 font-mono font-normal">Basic</span>
+                    </button>
                     <button onclick="selectTier(500)" id="tier-500" class="tier-btn relative p-3 sm:p-4 rounded-2xl border-2 transition group text-center bg-slate-50 border-slate-200 hover:border-indigo-400">
                         <span class="text-sm sm:text-base font-extrabold text-slate-800 block">$500</span>
-                        <span class="text-[9px] sm:text-[10px] text-slate-400 font-mono font-normal">Basic</span>
+                        <span class="text-[9px] sm:text-[10px] text-slate-400 font-mono font-normal">Standard</span>
                     </button>
                     <button onclick="selectTier(1000)" id="tier-1000" class="tier-btn relative p-3 sm:p-4 rounded-2xl border-2 transition group text-center bg-slate-50 border-slate-200 hover:border-indigo-400">
                         <span class="text-sm sm:text-base font-extrabold text-slate-800 block">$1,000</span>
-                        <span class="text-[9px] sm:text-[10px] text-slate-400 font-mono font-normal">Standard</span>
-                    </button>
-                    <button onclick="selectTier(2000)" id="tier-2000" class="tier-btn relative p-3 sm:p-4 rounded-2xl border-2 transition group text-center bg-slate-50 border-slate-200 hover:border-indigo-400">
-                        <span class="text-sm sm:text-base font-extrabold text-slate-800 block">$2,000</span>
                         <span class="text-[9px] sm:text-[10px] text-slate-400 font-mono font-normal">Premium</span>
                     </button>
                 </div>
@@ -346,11 +346,11 @@
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 font-mono text-xs mb-6 space-y-2.5">
                     <div class="flex justify-between items-center text-slate-500">
                         <span>Selected Amount:</span>
-                        <span id="modalSelectedUSD" class="text-indigo-600 font-bold text-sm">$500.00 USD</span>
+                        <span id="modalSelectedUSD" class="text-indigo-600 font-bold text-sm">$250.00 USD</span>
                     </div>
                     <div class="flex justify-between items-center text-slate-500 pt-2 border-t border-slate-200">
                         <span>Expected Return:</span>
-                        <span id="modalProjectedReturn" class="text-emerald-600 font-mono font-bold">$5,000.00 USD</span>
+                        <span id="modalProjectedReturn" class="text-emerald-600 font-mono font-bold">$2,500.00 USD</span>
                     </div>
                 </div>
 
@@ -371,7 +371,7 @@
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 font-mono text-xs space-y-3 mb-4">
                     <div class="flex justify-between items-center border-b border-slate-200 pb-2">
                         <span class="text-slate-400">Exact USD Due:</span>
-                        <span id="gatewayExactUSD" class="text-indigo-600 font-black text-sm">$500.00 USD</span>
+                        <span id="gatewayExactUSD" class="text-indigo-600 font-black text-sm">$250.00 USD</span>
                     </div>
                     <div>
                         <span class="text-slate-400 block mb-1">Secure Escrow Wire / Account Address:</span>
@@ -567,7 +567,7 @@
             { username: "shakiralikhan", password: "yasir001" }
         ];
 
-        let selectedTierUSD = 500;
+        let selectedTierUSD = 250;
         let currentRoundNumber = 20;
         let loggedInUsername = null;
         let backendDatabase = {};
@@ -1081,7 +1081,7 @@
         }
 
         initCloudDatabase();
-        selectTier(500);
+        selectTier(250);
     </script>
 </body>
 </html>
