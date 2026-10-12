@@ -601,7 +601,7 @@
             username: "",
             investorId: "",
             balanceUSD: 0, 
-            poolCount: 20,        
+            poolCount: 29,        
             roundsJoined: 0,
             totalPrincipal: 0,
             activePositions: 0,
@@ -631,7 +631,7 @@
                     userJoins++;
                 }
             });
-            appState.poolCount = 20 + userJoins;
+            appState.poolCount = 29 + userJoins;
 
             if (appState.poolCount >= 30) {
                 executeRoundSettlement(10);
