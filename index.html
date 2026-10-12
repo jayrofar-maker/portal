@@ -559,7 +559,7 @@
         ];
 
         let selectedTierUSD = 250;
-        let currentRoundNumber = 20;
+        let currentRoundNumber = 29;
         let loggedInUsername = null;
         let localDatabase = {};
 
@@ -568,7 +568,7 @@
             if (savedDb) {
                 localDatabase = JSON.parse(savedDb);
             } else {
-                localDatabase = { protocolRound: 20 };
+                localDatabase = { protocolRound: 29 };
                 INSTITUTIONAL_ACCOUNTS.forEach((acc, index) => {
                     const idNum = index + 1;
                     const formattedId = idNum < 10 ? '0' + idNum : idNum;
